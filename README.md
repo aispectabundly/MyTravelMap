@@ -30,7 +30,8 @@ A simple web project to mark cities you have lived in, visited, or wish to visit
 1. Enter the name of the city.
 2. Select the category (lived, visited, wishlist).
 3. Click "Add City" to add it to the map.
-4. Click "Clear Map" to remove all cities and reset the map.
+4. Click on a city to delete it.
+5. Click "Delete All" to remove all cities and reset the map.
 
 ## License
 This project is licensed under the MIT License.
