@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Travel Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        #input-container {
+            margin: 10px;
+        }
+        input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="input-container">
+        <input type="text" id="city-name" placeholder="Enter the city name">
+        <select id="city-type">
+            <option value="lived">Lived</option>
+            <option value="visited">Visited</option>
+            <option value="wishlist">Wishlist</option>
+        </select>
+        <button onclick="addCity()">Add City</button>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        var map = L.map('map').setView([20, 0], 2); //Initializing the map.
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map); //Map's visual representation.
+
+        var livedCities = []; //List of cities lived in.
+        var visitedCities = []; //List of visited cities
+        var wishlistCities = []; //List of cities to visit.
+
+        function addCityMarker(lat, lon, type, cityName) { //Mark each city with the appropriate color.
+            var color;
+            if(type === 'lived') color ='orange';
+            else if(type === 'visited') color = 'pink';
+            else if (type === 'wishlist') color = 'red';
+            
+            var marker = L.circleMarker([lat, lon], {
+                color: color,
+                radius: 8
+            }).addTo(map);
+
+            marker.bindPopup(type === 'visited' ? `Visited: ${cityName}` : `Wishlist: ${cityName}`);
+            if(type === 'lived') livedCities.push(marker);
+            else if (type === 'visited') visitedCities.push(marker);
+            else wishlistCities.push(marker);
+
+            saveMapData();
+
+        }
+
+        function addCity() {
+            var cityName = $('#city-name').val();
+            var cityType = $('#city-type').val();
+            if (cityName) {
+                geocodeCity(cityName, cityType);
+            } else {
+                alert("Please enter a city name.");
+            }
+        }
+
+        function geocodeCity(cityName, cityType) {
+            var apiKey = '0af38c8c7d1b4db39516cfe562f6ed90';
+            var url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(cityName)}&key=${apiKey}`;
+
+            $.getJSON(url, function(data) {
+                if (data.results && data.results.length > 0) {
+                    var lat = data.results[0].geometry.lat;
+                    var lon = data.results[0].geometry.lng;
+                    addCityMarker(lat, lon, cityType, cityName); //If found, add to the map.
+                } else {
+                    alert("City not found. Please try again.");
+                }
+            });
+        }
+
+        function saveMapData() {
+            var mapData = [];
+            livedCities.forEach(function(marker) {
+                mapData.push({lat: marker.getLatLng().lat, lon: marker.getLatLng().lng, type:'lived',name: marker.getPopup().getContent().split(': ')[1]});
+            });
+            visitedCities.forEach(function(marker) {
+                mapData.push({lat: marker.getLatLng().lat, lon: marker.getLatLng().lng, type: 'visited', name: marker.getPopup().getContent().split(': ')[1]});
+            });
+            wishlistCities.forEach(function(marker) {
+                mapData.push({lat: marker.getLatLng().lat, lon: marker.getLatLng().lng, type: 'wishlist', name: marker.getPopup().getContent().split(': ')[1]});
+            });
+            localStorage.setItem('mapData', JSON.stringify(mapData));
+        }
+        
+        function loadMapData() {
+            var mapData = localStorage.getItem('mapData');
+            if(mapData) {
+                mapData = JSON.parse(mapData);
+                mapData.forEach(function(city) {
+                    addCityMarker(city.lat, city.lon, city.type, city.name);
+                });
+            }
+        }
+
+        function clearMap() {
+            livedCities.forEach(marker => marker.remove());
+            visitedCities.forEach(marker => marker.remove());
+            wishlistCities.forEach(marker => marker.remove());
+
+            livedCities = [];
+            visitedCities = [];
+            wishlistCities = [];
+
+            localStorage.removeItem('mapData');
+        }
+
+        $(document).ready(function() {
+            loadMapData();
+        });
+        
+    </script>
+</body>
+</html>
