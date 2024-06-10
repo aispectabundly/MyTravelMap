@@ -4,8 +4,9 @@ A simple web project to mark cities you have lived in, visited, or wish to visit
 
 ## Features
 1. Add cities with three different categories: cities lived in, cities visited and cities you wish to visit.
-2. Save the map data in the browser's local storage
-3. Load the saved map data on page reload
+2. Delete all or a specific city.
+3. Save the map data in the browser's local storage
+4. Load the saved map data on page reload
 
 ## Technologies Used
 - HTML
