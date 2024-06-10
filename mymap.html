@@ -27,6 +27,7 @@
             <option value="wishlist">Wishlist</option>
         </select>
         <button onclick="addCity()">Add City</button>
+        <button onclick="deleteAll()">Delete All</button>
     </div>
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -53,7 +54,12 @@
                 radius: 8
             }).addTo(map);
 
-            marker.bindPopup(type === 'visited' ? `Visited: ${cityName}` : `Wishlist: ${cityName}`);
+            marker.bindPopup(type === 'visited' ? `Visited: ${cityName}` : type === 'lived' ? `Lived: ${cityName}` : `Wishlist: ${cityName}`);
+            
+            marker.on('click', function() {
+                removeCityMarker(marker, type);
+            });
+
             if(type === 'lived') livedCities.push(marker);
             else if (type === 'visited') visitedCities.push(marker);
             else wishlistCities.push(marker);
@@ -109,6 +115,27 @@
                     addCityMarker(city.lat, city.lon, city.type, city.name);
                 });
             }
+        }
+
+        function removeCityMarker(marker, type) {
+            marker.remove(); // Remove marker from the map
+            
+            if (type === 'lived') livedCities.splice(livedCities.indexOf(marker), 1);
+            else if (type === 'visited') visitedCities.splice(visitedCities.indexOf(marker), 1);
+            else if (type === 'wishlist') wishlistCities.splice(wishlistCities.indexOf(marker), 1);
+            
+            saveMapData();
+        }
+
+        function deleteAll() {
+            livedCities.forEach(marker => marker.remove());
+            visitedCities.forEach(marker => marker.remove());
+            wishlistCities.forEach(marker => marker.remove());
+
+            livedCities = [];
+            visitedCities = [];
+            wishlistCities = [];
+
         }
 
         function clearMap() {
